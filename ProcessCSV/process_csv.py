@@ -8,7 +8,10 @@ class ProcessCSV:
         lines = test_file.readlines()
         print lines
         print len(lines)
-        text_file.close()
+        for line in lines:
+            tokens = line.strip().split(",")
+            print tokens
+        test_file.close()
 
 if __name__ == '__main__':
 

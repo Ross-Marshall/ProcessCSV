@@ -11,6 +11,10 @@ class ProcessCSV:
         for line in lines:
             tokens = line.strip().split(",")
             print tokens
+            ls = tokens[1]
+            if len( ls ) > 0:
+                num = int( ls )
+                print num
         test_file.close()
 
 if __name__ == '__main__':

@@ -1,0 +1,79 @@
+import httplib
+#from http.client import HTTPSConnection
+from base64 import b64encode
+import sys
+
+#
+# Get the variables from the properties file.
+#
+dicts_from_file = []
+with open('api.properties','r') as inf:
+    for line in inf:
+        dicts_from_file.append(eval(line))
+
+d = dicts_from_file[0]
+
+client_template        = d[ 'client_template' ] 
+secret                 = d[ 'secret' ]
+login_url              = d[ 'login_url' ]
+redirect_url           = d[ 'redirect_url' ]
+client_id              = d[ 'client_id' ]
+redirect_template      = d[ 'redirect_template' ]
+api_site_id            = d[ 'api_site_id' ]
+access_url             = d[ 'access_url' ]
+secret_template        = d[ 'secret_template' ]
+authorization_template = d[ 'authorization_template' ]
+username               = d[ 'username' ]
+password               = d[ 'password' ]
+url                    = d[ 'url' ]
+
+#This sets up the https connection
+#url = ''
+c = httplib.HTTPSConnection( url )
+#c = httplib.HTTPSConnection( 'user.sportngin.com' )
+
+#we need to base 64 encode it 
+#and then decode it to acsii as python 3 stores it as a byte string
+userAndPass = b64encode(b"blahblah:blahblah").decode("ascii")
+#userAndPass = b64encode( username + ':' + password.encode('utf-8')  ).decode("ascii")
+
+print 'userAndPass [' + userAndPass + ']'
+headers = { 'Authorization' : 'Basic %s' %  userAndPass }
+
+#client_id    = '5100f9c6302f70a19393e71c3de5f52a'
+#secret       = 'aea454ec3e2ea9bc9e3cf9c42dab99ee'
+#redirect_url = 'http://www.cranfordhockeyclub.com/chcapitesting'
+#api_site_id  = '9497'
+
+login_url = '/oauth/authorize?response_type=code&client_id=[CLIENT_IDENTIFIER]&redirect_uri=[REDIRECT_URI]'
+login_url = login_url.replace( '[CLIENT_IDENTIFIER]', client_id ).replace( '[REDIRECT_URI]', redirect_url ) 
+print 'login_url [' + login_url + ']'
+#login_url = login_url.replace( client_template, client_id ).replace( redirect_template, redirect_url )
+print 'login_url [' + login_url + ']'
+print '-----------------------------------------------------'
+
+#then connect
+c.request('GET', login_url, headers=headers)
+
+
+#get the response back
+res = c.getresponse()
+
+print 'response ====> ' + str( res )
+
+# at this point you could check the status etc
+# this gets the page text
+data = res.read() 
+print 'Login data: ' + data
+
+code=data.split('=')[2].split('"')[0]
+print 'code = ' + code
+sys.exit(0)
+
+#access_url='https://user.sportngin.com/oauth/token?grant_type=authorization_code&client_id=[CLIENT_IDENTIFIER]&client_secret=[CLIENT_SECRET]&code=[AUTHORIZATION CODE]'.replace( '[CLIENT_IDENTIFIER]', client_id ).replace( '[CLIENT_SECRET]', secret ).replace( '[AUTHORIZATION CODE]', code )
+access_url=access_url.replace( client_template, client_id ).replace( secret_template, secret ).replace( authorization_template, code )
+
+print 'access_url = ' + access_url
+
+c.request('POST', access_url)
+print c.getresponse().read()
